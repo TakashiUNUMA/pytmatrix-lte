@@ -14,9 +14,10 @@ The adaptations include:
 The installation instructions in the original wiki are outdated and **do not** work for recent python versions (python>3.6).\
 Use the following instructions instead (given for python 3.12, but should work for any python>3.6).
 * Clone the repository: `git clone ...`
-* Activate a conda environment with the following required packages: `numpy`, `scipy`, `meson`, `ninja`. You can create an appropriate environment with the following command: `conda create -n tmatrix python=3.12 numpy scipy meson ninja`
+* Activate a conda environment with the following required packages: `numpy`, `scipy`, `meson`. You can create an appropriate environment with the following command: `conda create -n tmatrix python=3.12 numpy scipy meson`
 * In the terminal run the following commands:
 ```
+
 cd pytmatrix-lte
 python3 setup.py install
 ```
