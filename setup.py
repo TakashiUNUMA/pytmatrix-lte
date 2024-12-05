@@ -133,7 +133,7 @@ def configuration(parent_package='', so_file='', target_dir='', top_path=None):
             'pytmatrix': ['ice_refr.dat'],
             'pytmatrix.fortran_tm': ['ampld.par.f']
         },
-        install_requires=['numpy', 'scipy', 'meson', 'ninja'],  # You can add any other dependencies here
+        install_requires=['numpy', 'scipy'],  # You can add any other dependencies here
     )
 
 if __name__ == '__main__':
