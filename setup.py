@@ -70,9 +70,9 @@ class PyTMatrixBuildExt(_build_ext):
                 raise subprocess.CalledProcessError(result.returncode, cmd)
             
             # After successful compilation, find the generated .so file
-            compiled_so = glob.glob('*.so')
-            if compiled_so:
-                so_file = compiled_so[0]
+            compiled_ext = glob.glob('*.so') + glob.glob('*.pyd')
+            if compiled_ext:
+                ext_file = compiled_ext[0]
                 target_dir = os.path.join('pytmatrix','fortran_tm')
                 
                 # Ensure the target directory exists
@@ -80,8 +80,8 @@ class PyTMatrixBuildExt(_build_ext):
                     os.makedirs(target_dir)
 
                 # Move the .so file to the correct directory
-                shutil.move(so_file, os.path.join(target_dir, so_file))
-                print(f"Moved {so_file} to {target_dir}")
+                shutil.move(ext_file, os.path.join(target_dir, ext_file))
+                print(f"Moved {ext_file} to {target_dir}")
 
         except subprocess.CalledProcessError as e:
             print(f"f2py failed with error code {e.returncode}")
@@ -120,7 +120,7 @@ setup(
 
     # Install dependencies
     install_requires=['numpy', 'scipy'],
-
+    ext_modules= [],
     # Custom build step
     cmdclass={
         'build_ext': PyTMatrixBuildExt,  # Use our custom build_ext that runs f2py
