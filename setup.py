@@ -22,7 +22,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-from setuptools import setup, Extension
+from setuptools import setup#, Extension
 import subprocess
 import os
 import numpy
@@ -30,7 +30,7 @@ import sys
 from setuptools.command.build_ext import build_ext as _build_ext
 import glob
 import shutil
-
+# from custom_build import CustomBuild
 # Custom build extension class to invoke f2py manually
 class PyTMatrixBuildExt(_build_ext):
     def run(self):
