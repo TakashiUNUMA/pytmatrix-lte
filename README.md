@@ -17,9 +17,15 @@ Use the following instructions instead (given for python 3.12, but should work f
 * Activate a conda environment with the following required packages: `numpy`, `scipy`, `meson`. You can create an appropriate environment with the following command: `conda create -n tmatrix python=3.12 numpy scipy meson`
 * In the terminal run the following commands:
 ```
-
 cd pytmatrix-lte
+```
+Then:
+```
 python3 setup.py install
+```
+or:
+```
+pip install -e .
 ```
 - The code should now be installed and ready to use.
 
