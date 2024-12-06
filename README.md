@@ -18,13 +18,6 @@ Use the following instructions instead (given for python 3.12, but should work f
 * In the terminal run the following commands:
 ```
 cd pytmatrix-lte
-```
-Then:
-```
-python3 setup.py install
-```
-or:
-```
 pip install -e .
 ```
 - The code should now be installed and ready to use.
