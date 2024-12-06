@@ -1,3 +1,27 @@
+"""
+Copyright (C) 2009-2017 Jussi Leinonen, Finnish Meteorological Institute, 
+California Institute of Technology
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
+
+
 from setuptools import setup, Extension
 import subprocess
 import os
@@ -8,7 +32,7 @@ import glob
 import shutil
 
 # Custom build extension class to invoke f2py manually
-class CustomBuildExt(_build_ext):
+class PyTMatrixBuildExt(_build_ext):
     def run(self):
         # Call f2py to compile Fortran code into a Python extension
         self.build_fortran_extension()
@@ -16,7 +40,6 @@ class CustomBuildExt(_build_ext):
         super().run()
 
     def build_fortran_extension(self):
-        # Construct paths using os.path.join to handle cross-platform path separators
         # Path to Fortran sources
         sources = [
             os.path.join('pytmatrix','fortran_tm','pytmatrix.pyf'),  # Interface file for f2py
@@ -50,7 +73,7 @@ class CustomBuildExt(_build_ext):
             compiled_so = glob.glob('*.so')
             if compiled_so:
                 so_file = compiled_so[0]
-                target_dir = 'pytmatrix/fortran_tm/'
+                target_dir = os.path.join('pytmatrix','fortran_tm')
                 
                 # Ensure the target directory exists
                 if not os.path.exists(target_dir):
@@ -75,9 +98,20 @@ class CustomBuildExt(_build_ext):
 setup(
     name='pytmatrix',
     version='0.3.3',
-    description='A Python code for computing the scattering properties of nonspherical scatterers with T-Matrix method.',
+    author= "Jussi Leinonen",
+    author_email="jsleinonen@gmail.com",
+    description="T-matrix scattering computations",
+    license='MIT',
     long_description='A Python code for computing the scattering properties of homogeneous nonspherical scatterers with the T-Matrix method. Requires NumPy and SciPy.',
-    
+    classifiers=[
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Fortran",
+            "Programming Language :: Python",
+            "Topic :: Scientific/Engineering :: Physics",
+        ],
     packages=['pytmatrix', 'pytmatrix.test', 'pytmatrix.quadrature', 'pytmatrix.fortran_tm'],
     package_data={
         'pytmatrix': ['ice_refr.dat'],
@@ -89,7 +123,7 @@ setup(
 
     # Custom build step
     cmdclass={
-        'build_ext': CustomBuildExt,  # Use our custom build_ext that runs f2py
+        'build_ext': PyTMatrixBuildExt,  # Use our custom build_ext that runs f2py
     },
 
     zip_safe=False,  # Avoid zip safe for binary extensions
