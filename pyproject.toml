@@ -1,4 +1,4 @@
 [build-system]
-requires = ["setuptools>=64", "wheel", "numpy", "scipy", "f2py"]
+requires = ["setuptools>=64", "numpy", "scipy", "meson", "ninja"]
 build-backend = "setuptools.build_meta"
 
