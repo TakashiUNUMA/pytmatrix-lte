@@ -1,5 +1,5 @@
 """
-Copyright (C) 2009-2015 Jussi Leinonen, Finnish Meteorological Institute, 
+Copyright (C) 2009-2015 Jussi Leinonen, Finnish Meteorological Institute,
 California Institute of Technology
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -35,20 +35,24 @@ def mg_refractive(m, mix):
             (if sum(mix)!=1, these are taken relative to sum(mix))
 
     Returns:
-       The Maxwell-Garnett approximation for the complex refractive index of 
+       The Maxwell-Garnett approximation for the complex refractive index of
        the effective medium
 
-    If len(m)==2, the first element is taken as the matrix and the second as 
-    the inclusion. If len(m)>2, the media are mixed recursively so that the 
-    last element is used as the inclusion and the second to last as the 
-    matrix, then this mixture is used as the last element on the next 
+    If len(m)==2, the first element is taken as the matrix and the second as
+    the inclusion. If len(m)>2, the media are mixed recursively so that the
+    last element is used as the inclusion and the second to last as the
+    matrix, then this mixture is used as the last element on the next
     iteration, and so on.
     """
 
     if len(m) == 2:
-        cF = float(mix[1]) / (mix[0]+mix[1]) * \
-            (m[1]**2-m[0]**2) / (m[1]**2+2*m[0]**2)
-        er = m[0]**2 * (1.0+2.0*cF) / (1.0-cF)
+        cF = (
+            float(mix[1])
+            / (mix[0] + mix[1])
+            * (m[1] ** 2 - m[0] ** 2)
+            / (m[1] ** 2 + 2 * m[0] ** 2)
+        )
+        er = m[0] ** 2 * (1.0 + 2.0 * cF) / (1.0 - cF)
         m = np.sqrt(er)
     else:
         m_last = mg_refractive(m[-2:], mix[-2:])
@@ -63,46 +67,53 @@ def bruggeman_refractive(m, mix):
     For instructions, see mg_refractive in this module, except this routine
     only works for two components.
     """
-    f1 = mix[0]/sum(mix)
-    f2 = mix[1]/sum(mix)
-    e1 = m[0]**2
-    e2 = m[1]**2
-    a = -2*(f1+f2)
-    b = (2*f1*e1 - f1*e2 + 2*f2*e2 - f2*e1)
-    c = (f1+f2)*e1*e2
-    e_eff = (-b - np.sqrt(b**2-4*a*c))/(2*a)
+    f1 = mix[0] / sum(mix)
+    f2 = mix[1] / sum(mix)
+    e1 = m[0] ** 2
+    e2 = m[1] ** 2
+    a = -2 * (f1 + f2)
+    b = 2 * f1 * e1 - f1 * e2 + 2 * f2 * e2 - f2 * e1
+    c = (f1 + f2) * e1 * e2
+    e_eff = (-b - np.sqrt(b**2 - 4 * a * c)) / (2 * a)
     return np.sqrt(e_eff)
 
 
-#Water refractive indices for different bands at 0 C
-m_w_0C = {wl_S: complex(9.075, 1.253),
-          wl_C: complex(8.328, 2.217),
-          wl_X: complex(7.351, 2.785),
-          wl_Ku: complex(6.265, 2.993),
-          wl_Ka: complex(4.040, 2.388),
-          wl_W: complex(2.880, 1.335)}
+# Water refractive indices for different bands at 0 C
+m_w_0C = {
+    wl_S: complex(9.075, 1.253),
+    wl_C: complex(8.328, 2.217),
+    wl_X: complex(7.351, 2.785),
+    wl_Ku: complex(6.265, 2.993),
+    wl_Ka: complex(4.040, 2.388),
+    wl_W: complex(2.880, 1.335),
+}
 
 
-#Water refractive indices for different bands at 10 C
-m_w_10C = {wl_S: complex(9.019, 0.887),
-           wl_C: complex(8.601, 1.687),
-           wl_X: complex(7.942, 2.332),
-           wl_Ku: complex(7.042, 2.777),
-           wl_Ka: complex(4.638, 2.672),
-           wl_W: complex(3.117, 1.665)}
+# Water refractive indices for different bands at 10 C
+m_w_10C = {
+    wl_S: complex(9.019, 0.887),
+    wl_C: complex(8.601, 1.687),
+    wl_X: complex(7.942, 2.332),
+    wl_Ku: complex(7.042, 2.777),
+    wl_Ka: complex(4.638, 2.672),
+    wl_W: complex(3.117, 1.665),
+}
 
 
-#Water refractive indices for different bands at 20 C
-m_w_20C = {wl_S: complex(8.876, 0.653),
-           wl_C: complex(8.633, 1.289),
-           wl_X: complex(8.208, 1.886),
-           wl_Ku: complex(7.537, 2.424),
-           wl_Ka: complex(5.206, 2.801),
-           wl_W: complex(3.382, 1.941)}
+# Water refractive indices for different bands at 20 C
+m_w_20C = {
+    wl_S: complex(8.876, 0.653),
+    wl_C: complex(8.633, 1.289),
+    wl_X: complex(8.208, 1.886),
+    wl_Ku: complex(7.537, 2.424),
+    wl_Ka: complex(5.206, 2.801),
+    wl_W: complex(3.382, 1.941),
+}
 
 
-#Ice density in g/cm^3
+# Ice density in g/cm^3
 ice_density = 0.9167
+
 
 def ice_refractive(file):
     """
@@ -119,9 +130,9 @@ def ice_refractive(file):
     """
     D = np.loadtxt(file)
 
-    log_wl = np.log10(D[:,0]/1000)
-    re = D[:,1]
-    log_im = np.log10(D[:,2])
+    log_wl = np.log10(D[:, 0] / 1000)
+    re = D[:, 1]
+    log_im = np.log10(D[:, 2])
 
     iobj_re = interpolate.interp1d(log_wl, re)
     iobj_log_im = interpolate.interp1d(log_wl, log_im)
@@ -131,16 +142,24 @@ def ice_refractive(file):
         try:
             len(lwl)
         except TypeError:
-            mi_sqr = complex(iobj_re(lwl), 10**iobj_log_im(lwl))**2
+            mi_sqr = complex(iobj_re(lwl), 10 ** iobj_log_im(lwl)) ** 2
         else:
-            mi_sqr = np.array([complex(a,b) for (a,b) in zip(iobj_re(lwl), 
-                10**iobj_log_im(lwl))])**2
+            mi_sqr = (
+                np.array(
+                    [
+                        complex(a, b)
+                        for (a, b) in zip(iobj_re(lwl), 10 ** iobj_log_im(lwl))
+                    ]
+                )
+                ** 2
+            )
 
-        c = (mi_sqr-1)/(mi_sqr+2) * snow_density/ice_density
-        return np.sqrt( (1+2*c) / (1-c) )
+        c = (mi_sqr - 1) / (mi_sqr + 2) * snow_density / ice_density
+        return np.sqrt((1 + 2 * c) / (1 - c))
 
     return ref
 
+
 module_path = path.split(path.abspath(__file__))[0]
 
-mi = ice_refractive(module_path + '/ice_refr.dat')
+mi = ice_refractive(module_path + "/ice_refr.dat")

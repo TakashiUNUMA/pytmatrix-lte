@@ -1,4 +1,4 @@
-python module pytmatrix ! in 
+python module pytmatrix ! in
     interface  ! in :pytmatrix
         subroutine calctmat(axi,rat,lam,mrr,mri,eps,np,ddelt,ndgs,nmax) ! in :pytmatrix:ampld.lp.f
             real*8 intent(in) :: axi
@@ -23,7 +23,6 @@ python module pytmatrix ! in
             real*8 intent(in) :: beta
             complex*16 dimension(2,2),intent(out) :: s
             real*8 dimension(4,4),intent(out) :: z
-        end subroutine calcampl        
-    end interface 
+        end subroutine calcampl
+    end interface
 end python module pytmatrix
-

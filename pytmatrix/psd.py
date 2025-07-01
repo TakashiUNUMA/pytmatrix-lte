@@ -1,5 +1,5 @@
 """
-Copyright (C) 2009-2023 Jussi Leinonen, Finnish Meteorological Institute, 
+Copyright (C) 2009-2023 Jussi Leinonen, Finnish Meteorological Institute,
 California Institute of Technology
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -21,6 +21,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from datetime import datetime
+
 try:
     import cPickle as pickle
 except ImportError:
@@ -33,7 +34,7 @@ import pytmatrix.scatter as scatter
 import pytmatrix.tmatrix_aux as tmatrix_aux
 
 
-class PSD(object):
+class PSD:
     def __call__(self, D):
         if np.shape(D) == ():
             return 0.0
@@ -46,9 +47,9 @@ class PSD(object):
 
 class ExponentialPSD(PSD):
     """Exponential particle size distribution (PSD).
-    
-    Callable class to provide an exponential PSD with the given 
-    parameters. The attributes can also be given as arguments to the 
+
+    Callable class to provide an exponential PSD with the given
+    parameters. The attributes can also be given as arguments to the
     constructor.
 
     The PSD form is:
@@ -56,7 +57,7 @@ class ExponentialPSD(PSD):
 
     Attributes:
         N0: the intercept parameter.
-        Lambda: the inverse scale parameter        
+        Lambda: the inverse scale parameter
         D_max: the maximum diameter to consider (defaults to 11/Lambda,
             i.e. approx. 3*D0, if None)
 
@@ -64,17 +65,17 @@ class ExponentialPSD(PSD):
         D: the particle diameter.
 
     Returns (call):
-        The PSD value for the given diameter.    
+        The PSD value for the given diameter.
         Returns 0 for all diameters larger than D_max.
     """
 
     def __init__(self, N0=1.0, Lambda=1.0, D_max=None):
         self.N0 = float(N0)
         self.Lambda = float(Lambda)
-        self.D_max = 11.0/Lambda if D_max is None else D_max
+        self.D_max = 11.0 / Lambda if D_max is None else D_max
 
     def __call__(self, D):
-        psd = self.N0 * np.exp(-self.Lambda*D)
+        psd = self.N0 * np.exp(-self.Lambda * D)
         if np.shape(D) == ():
             if D > self.D_max:
                 return 0.0
@@ -84,18 +85,21 @@ class ExponentialPSD(PSD):
 
     def __eq__(self, other):
         try:
-            return isinstance(other, ExponentialPSD) and \
-                (self.N0 == other.N0) and (self.Lambda == other.Lambda) and \
-                (self.D_max == other.D_max)
+            return (
+                isinstance(other, ExponentialPSD)
+                and (self.N0 == other.N0)
+                and (self.Lambda == other.Lambda)
+                and (self.D_max == other.D_max)
+            )
         except AttributeError:
             return False
 
 
 class UnnormalizedGammaPSD(ExponentialPSD):
     """Gamma particle size distribution (PSD).
-    
-    Callable class to provide an gamma PSD with the given 
-    parameters. The attributes can also be given as arguments to the 
+
+    Callable class to provide an gamma PSD with the given
+    parameters. The attributes can also be given as arguments to the
     constructor.
 
     The PSD form is:
@@ -112,20 +116,19 @@ class UnnormalizedGammaPSD(ExponentialPSD):
         D: the particle diameter.
 
     Returns (call):
-        The PSD value for the given diameter.    
+        The PSD value for the given diameter.
         Returns 0 for all diameters larger than D_max.
     """
-    
+
     def __init__(self, N0=1.0, Lambda=1.0, mu=0.0, D_max=None):
-        super(UnnormalizedGammaPSD, self).__init__(N0=N0, Lambda=Lambda, 
-            D_max=D_max)
+        super().__init__(N0=N0, Lambda=Lambda, D_max=D_max)
         self.mu = mu
 
     def __call__(self, D):
         # For large mu, this is better numerically than multiplying by D**mu
-        psd = self.N0 * np.exp(self.mu*np.log(D)-self.Lambda*D)
+        psd = self.N0 * np.exp(self.mu * np.log(D) - self.Lambda * D)
         if np.shape(D) == ():
-            if (D > self.D_max) or (D==0):
+            if (D > self.D_max) or (D == 0):
                 return 0.0
         else:
             psd[(D > self.D_max) | (D == 0)] = 0.0
@@ -133,18 +136,16 @@ class UnnormalizedGammaPSD(ExponentialPSD):
 
     def __eq__(self, other):
         try:
-            return super(UnnormalizedGammaPSD, self).__eq__(other) and \
-                self.mu == other.mu
+            return super().__eq__(other) and self.mu == other.mu
         except AttributeError:
             return False
-        
 
 
 class GammaPSD(PSD):
     """Normalized gamma particle size distribution (PSD).
-    
-    Callable class to provide a normalized gamma PSD with the given 
-    parameters. The attributes can also be given as arguments to the 
+
+    Callable class to provide a normalized gamma PSD with the given
+    parameters. The attributes can also be given as arguments to the
     constructor.
 
     The PSD form is:
@@ -162,92 +163,98 @@ class GammaPSD(PSD):
         D: the particle diameter.
 
     Returns (call):
-        The PSD value for the given diameter.    
+        The PSD value for the given diameter.
         Returns 0 for all diameters larger than D_max.
     """
 
     def __init__(self, D0=1.0, Nw=1.0, mu=0.0, D_max=None):
         self.D0 = float(D0)
         self.mu = float(mu)
-        self.D_max = 3.0*D0 if D_max is None else D_max
+        self.D_max = 3.0 * D0 if D_max is None else D_max
         self.Nw = float(Nw)
-        self.nf = Nw * 6.0/3.67**4 * (3.67+mu)**(mu+4)/gamma(mu+4)
+        self.nf = Nw * 6.0 / 3.67**4 * (3.67 + mu) ** (mu + 4) / gamma(mu + 4)
 
     def __call__(self, D):
-        d = (D/self.D0)
-        psd = self.nf * np.exp(self.mu*np.log(d)-(3.67+self.mu)*d)
+        d = D / self.D0
+        psd = self.nf * np.exp(self.mu * np.log(d) - (3.67 + self.mu) * d)
         if np.shape(D) == ():
-            if (D > self.D_max) or (D==0.0):
+            if (D > self.D_max) or (D == 0.0):
                 return 0.0
         else:
-            psd[(D > self.D_max) | (D==0.0)] = 0.0
+            psd[(D > self.D_max) | (D == 0.0)] = 0.0
         return psd
 
     def __eq__(self, other):
         try:
-            return isinstance(other, GammaPSD) and (self.D0 == other.D0) and \
-                (self.Nw == other.Nw) and (self.mu == other.mu) and \
-                (self.D_max == other.D_max)
+            return (
+                isinstance(other, GammaPSD)
+                and (self.D0 == other.D0)
+                and (self.Nw == other.Nw)
+                and (self.mu == other.mu)
+                and (self.D_max == other.D_max)
+            )
         except AttributeError:
             return False
 
 
 class BinnedPSD(PSD):
     """Binned gamma particle size distribution (PSD).
-    
+
     Callable class to provide a binned PSD with the given bin edges and PSD
     values.
 
     Args (constructor):
-        The first argument to the constructor should specify n+1 bin edges, 
-        and the second should specify n bin_psd values.        
-        
+        The first argument to the constructor should specify n+1 bin edges,
+        and the second should specify n bin_psd values.
+
     Args (call):
         D: the particle diameter.
 
     Returns (call):
-        The PSD value for the given diameter.    
+        The PSD value for the given diameter.
         Returns 0 for all diameters outside the bins.
     """
-    
+
     def __init__(self, bin_edges, bin_psd):
-        if len(bin_edges) != len(bin_psd)+1:
+        if len(bin_edges) != len(bin_psd) + 1:
             raise ValueError("There must be n+1 bin edges for n bins.")
-        
+
         self.bin_edges = bin_edges
         self.bin_psd = bin_psd
-        
-    def psd_for_D(self, D):       
+
+    def psd_for_D(self, D):
         if not (self.bin_edges[0] < D <= self.bin_edges[-1]):
             return 0.0
-        
+
         # binary search for the right bin
         start = 0
         end = len(self.bin_edges)
-        while end-start > 1:
-            half = (start+end)//2
+        while end - start > 1:
+            half = (start + end) // 2
             if self.bin_edges[start] < D <= self.bin_edges[half]:
                 end = half
             else:
                 start = half
-                                
-        return self.bin_psd[start]                    
-        
+
+        return self.bin_psd[start]
+
     def __call__(self, D):
-        if np.shape(D) == (): # D is a scalar
+        if np.shape(D) == ():  # D is a scalar
             return self.psd_for_D(D)
         else:
             return np.array([self.psd_for_D(d) for d in D])
-    
+
     def __eq__(self, other):
         if other is None:
             return False
-        return len(self.bin_edges) == len(other.bin_edges) and \
-            (self.bin_edges == other.bin_edges).all() and \
-            (self.bin_psd == other.bin_psd).all()
+        return (
+            len(self.bin_edges) == len(other.bin_edges)
+            and (self.bin_edges == other.bin_edges).all()
+            and (self.bin_psd == other.bin_psd).all()
+        )
 
 
-class PSDIntegrator(object):
+class PSDIntegrator:
     """A class used to perform computations over PSDs.
 
     This class can be used to integrate scattering properties over particle
@@ -265,28 +272,27 @@ class PSDIntegrator(object):
     "geometries" attribute.
 
     Attributes:
-        
-        num_points: the number of points for which to sample the PSD and 
+
+        num_points: the number of points for which to sample the PSD and
             scattering properties for; default num_points=1024 should be good
             for most purposes
         m_func: set to a callable object giving the refractive index as a
             function of diameter, or None to use the "m" attribute of the
             Scatterer for all sizes; default None
         axis_ratio_func: set to a callable object giving the aspect ratio
-            (horizontal to rotational) as a function of diameter, or None to 
+            (horizontal to rotational) as a function of diameter, or None to
             use the "axis_ratio" attribute for all sizes; default None
         D_max: set to the maximum single scatterer size that is desired to be
-            used (usually the D_max corresponding to the largest PSD you 
+            used (usually the D_max corresponding to the largest PSD you
             intend to use)
-        geometries: tuple containing the scattering geometry tuples that are 
-            initialized (thet0, thet, phi0, phi, alpha, beta); 
+        geometries: tuple containing the scattering geometry tuples that are
+            initialized (thet0, thet, phi0, phi, alpha, beta);
             default horizontal backscatter
     """
 
-    attrs = set(["num_points", "m_func", "axis_ratio_func", "D_max", 
-        "geometries"])
+    attrs = {"num_points", "m_func", "axis_ratio_func", "D_max", "geometries"}
 
-    def __init__(self, **kwargs):      
+    def __init__(self, **kwargs):
         self.num_points = 1024
         self.m_func = None
         self.axis_ratio_func = None
@@ -302,10 +308,8 @@ class PSDIntegrator(object):
         self._angular_table = None
         self._previous_psd = None
 
-
     def __call__(self, psd, geometry):
         return self.get_SZ(psd, geometry)
-
 
     def get_SZ(self, psd, geometry):
         """
@@ -315,8 +319,7 @@ class PSDIntegrator(object):
             The new amplitude (S) and phase (Z) matrices.
         """
         if (self._S_table is None) or (self._Z_table is None):
-            raise AttributeError(
-                "Initialize or load the scattering table first.")
+            raise AttributeError("Initialize or load the scattering table first.")
 
         if (not isinstance(psd, PSD)) or self._previous_psd != psd:
             self._S_dict = {}
@@ -324,21 +327,18 @@ class PSDIntegrator(object):
             psd_w = psd(self._psd_D)
 
             for geom in self.geometries:
-                self._S_dict[geom] = \
-                    trapezoid(self._S_table[geom] * psd_w, self._psd_D)
-                self._Z_dict[geom] = \
-                    trapezoid(self._Z_table[geom] * psd_w, self._psd_D)
+                self._S_dict[geom] = trapezoid(self._S_table[geom] * psd_w, self._psd_D)
+                self._Z_dict[geom] = trapezoid(self._Z_table[geom] * psd_w, self._psd_D)
 
             self._previous_psd = psd
 
         return (self._S_dict[geometry], self._Z_dict[geometry])
 
-
     def get_angular_integrated(self, psd, geometry, property_name, h_pol=True):
         if self._angular_table is None:
             raise AttributeError(
-                "Initialize or load the table of angular-integrated " + 
-                "quantities first."
+                "Initialize or load the table of angular-integrated "
+                + "quantities first."
             )
 
         pol = "h_pol" if h_pol else "v_pol"
@@ -346,24 +346,23 @@ class PSDIntegrator(object):
 
         def sca_xsect(geom):
             return trapezoid(
-                self._angular_table["sca_xsect"][pol][geom] * psd_w, 
-                self._psd_D
+                self._angular_table["sca_xsect"][pol][geom] * psd_w, self._psd_D
             )
-    
+
         if property_name == "sca_xsect":
             sca_prop = sca_xsect(geometry)
         elif property_name == "ext_xsect":
             sca_prop = trapezoid(
-                self._angular_table["ext_xsect"][pol][geometry] * psd_w, 
-                self._psd_D
+                self._angular_table["ext_xsect"][pol][geometry] * psd_w, self._psd_D
             )
         elif property_name == "asym":
             sca_xsect_int = sca_xsect(geometry)
             if sca_xsect_int > 0:
                 sca_prop = trapezoid(
-                    self._angular_table["asym"][pol][geometry] * \
-                    self._angular_table["sca_xsect"][pol][geometry] * psd_w,  
-                    self._psd_D
+                    self._angular_table["asym"][pol][geometry]
+                    * self._angular_table["sca_xsect"][pol][geometry]
+                    * psd_w,
+                    self._psd_D,
                 )
                 sca_prop /= sca_xsect_int
             else:
@@ -371,10 +370,9 @@ class PSDIntegrator(object):
 
         return sca_prop
 
-
     def init_scatter_table(self, tm, angular_integration=False, verbose=False):
         """Initialize the scattering lookup tables.
-        
+
         Initialize the scattering lookup tables for the different geometries.
         Before calling this, the following attributes must be set:
            num_points, m_func, axis_ratio_func, D_max, geometries
@@ -383,17 +381,18 @@ class PSDIntegrator(object):
 
         Args:
             tm: a Scatterer instance.
-            angular_integration: If True, also calculate the 
-                angle-integrated quantities (scattering cross section, 
-                extinction cross section, asymmetry parameter). These are 
-                needed to call the corresponding functions in the scatter 
+            angular_integration: If True, also calculate the
+                angle-integrated quantities (scattering cross section,
+                extinction cross section, asymmetry parameter). These are
+                needed to call the corresponding functions in the scatter
                 module when PSD integration is active. The default is False.
-            verbose: if True, print information about the progress of the 
-                calculation (which may take a while). If False (default), 
+            verbose: if True, print information about the progress of the
+                calculation (which may take a while). If False (default),
                 run silently.
         """
-        self._psd_D = np.linspace(self.D_max/self.num_points, self.D_max, 
-            self.num_points)
+        self._psd_D = np.linspace(
+            self.D_max / self.num_points, self.D_max, self.num_points
+        )
 
         self._S_table = {}
         self._Z_table = {}
@@ -402,65 +401,75 @@ class PSDIntegrator(object):
         if angular_integration:
             self._angular_table = {
                 "sca_xsect": {"h_pol": {}, "v_pol": {}},
-                "ext_xsect": {"h_pol": {}, "v_pol": {}}, 
-                "asym": {"h_pol": {}, "v_pol": {}}
+                "ext_xsect": {"h_pol": {}, "v_pol": {}},
+                "asym": {"h_pol": {}, "v_pol": {}},
             }
         else:
             self._angular_table = None
-        
-        (old_m, old_axis_ratio, old_radius, old_geom, old_psd_integrator) = \
-            (tm.m, tm.axis_ratio, tm.radius, tm.get_geometry(), 
-                tm.psd_integrator)
-        
+
+        (old_m, old_axis_ratio, old_radius, old_geom, old_psd_integrator) = (
+            tm.m,
+            tm.axis_ratio,
+            tm.radius,
+            tm.get_geometry(),
+            tm.psd_integrator,
+        )
+
         try:
             # temporarily disable PSD integration to avoid recursion
-            tm.psd_integrator = None 
+            tm.psd_integrator = None
 
             for geom in self.geometries:
-                self._S_table[geom] = \
-                    np.empty((2,2,self.num_points), dtype=complex)
-                self._Z_table[geom] = np.empty((4,4,self.num_points))
+                self._S_table[geom] = np.empty((2, 2, self.num_points), dtype=complex)
+                self._Z_table[geom] = np.empty((4, 4, self.num_points))
 
                 if angular_integration:
                     for int_var in ["sca_xsect", "ext_xsect", "asym"]:
                         for pol in ["h_pol", "v_pol"]:
-                            self._angular_table[int_var][pol][geom] = \
-                                np.empty(self.num_points)
+                            self._angular_table[int_var][pol][geom] = np.empty(
+                                self.num_points
+                            )
 
-            for (i,D) in enumerate(self._psd_D):
+            for i, D in enumerate(self._psd_D):
                 if verbose:
                     print("Computing point {i} at D={D}...".format(i=i, D=D))
-                if self.m_func != None:
+                if self.m_func is not None:
                     tm.m = self.m_func(D)
-                if self.axis_ratio_func != None:
+                if self.axis_ratio_func is not None:
                     tm.axis_ratio = self.axis_ratio_func(D)
                 self._m_table[i] = tm.m
-                tm.radius = D/2.0
+                tm.radius = D / 2.0
                 for geom in self.geometries:
                     tm.set_geometry(geom)
                     (S, Z) = tm.get_SZ_orient()
-                    self._S_table[geom][:,:,i] = S
-                    self._Z_table[geom][:,:,i] = Z
+                    self._S_table[geom][:, :, i] = S
+                    self._Z_table[geom][:, :, i] = Z
 
                     if angular_integration:
                         for pol in ["h_pol", "v_pol"]:
-                            h_pol = (pol == "h_pol")
-                            self._angular_table["sca_xsect"][pol][geom][i] = \
+                            h_pol = pol == "h_pol"
+                            self._angular_table["sca_xsect"][pol][geom][i] = (
                                 scatter.sca_xsect(tm, h_pol=h_pol)
-                            self._angular_table["ext_xsect"][pol][geom][i] = \
+                            )
+                            self._angular_table["ext_xsect"][pol][geom][i] = (
                                 scatter.ext_xsect(tm, h_pol=h_pol)
-                            self._angular_table["asym"][pol][geom][i] = \
-                                scatter.asym(tm, h_pol=h_pol)
+                            )
+                            self._angular_table["asym"][pol][geom][i] = scatter.asym(
+                                tm, h_pol=h_pol
+                            )
         finally:
-            #restore old values
-            (tm.m, tm.axis_ratio, tm.radius, tm.psd_integrator) = \
-                (old_m, old_axis_ratio, old_radius, old_psd_integrator) 
+            # restore old values
+            (tm.m, tm.axis_ratio, tm.radius, tm.psd_integrator) = (
+                old_m,
+                old_axis_ratio,
+                old_radius,
+                old_psd_integrator,
+            )
             tm.set_geometry(old_geom)
-
 
     def save_scatter_table(self, fn, description=""):
         """Save the scattering lookup tables.
-        
+
         Save the state of the scattering lookup tables to a file.
         This can be loaded later with load_scatter_table.
 
@@ -469,36 +478,49 @@ class PSDIntegrator(object):
         of the table.
 
         Args:
-           fn: The name of the scattering table file. 
+           fn: The name of the scattering table file.
            description (optional): A description of the table.
         """
         data = {
-           "description": description,
-           "time": datetime.now(),
-           "psd_scatter": (self.num_points, self.D_max, self._psd_D, 
-                self._S_table, self._Z_table, self._angular_table, 
-                self._m_table, self.geometries),
-           "version": tmatrix_aux.VERSION
-           }
-        with open(fn, 'wb') as f:
+            "description": description,
+            "time": datetime.now(),
+            "psd_scatter": (
+                self.num_points,
+                self.D_max,
+                self._psd_D,
+                self._S_table,
+                self._Z_table,
+                self._angular_table,
+                self._m_table,
+                self.geometries,
+            ),
+            "version": tmatrix_aux.VERSION,
+        }
+        with open(fn, "wb") as f:
             pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
-
 
     def load_scatter_table(self, fn):
         """Load the scattering lookup tables.
-        
+
         Load the scattering lookup tables saved with save_scatter_table.
 
         Args:
-            fn: The name of the scattering table file.            
+            fn: The name of the scattering table file.
         """
-        with open(fn, 'rb') as f:
+        with open(fn, "rb") as f:
             data = pickle.load(f)
 
-        if ("version" not in data) or (data["version"]!=tmatrix_aux.VERSION):
+        if ("version" not in data) or (data["version"] != tmatrix_aux.VERSION):
             warnings.warn("Loading data saved with another version.", Warning)
 
-        (self.num_points, self.D_max, self._psd_D, self._S_table, 
-            self._Z_table, self._angular_table, self._m_table, 
-            self.geometries) = data["psd_scatter"]
+        (
+            self.num_points,
+            self.D_max,
+            self._psd_D,
+            self._S_table,
+            self._Z_table,
+            self._angular_table,
+            self._m_table,
+            self.geometries,
+        ) = data["psd_scatter"]
         return (data["time"], data["description"])

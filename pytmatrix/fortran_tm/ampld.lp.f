@@ -1,4 +1,4 @@
-C   This is NOT the original code by the authors listed below! 
+C   This is NOT the original code by the authors listed below!
 C   Modified 2009-2013 by Jussi Leinonen (jsleinonen@gmail.com)
 C   to be compatible with the Python extension interface.
 C   The requirement of non-profit use only has been dropped from
@@ -10,23 +10,23 @@ C   We thank Cory Davis (University of Edinburgh) for pointing
 C   out the possibility of replacing the proprietary NAG matrix
 C   inversion routine by the public-domain LAPACK equivalent.
 
-C   CALCULATION OF THE AMPLITUDE AND PHASE MATRICES FOR                 
-C   A PARTICLE WITH AN AXIALLY SYMMETRIC SHAPE                   
-                                                                       
-C   This version of the code uses DOUBLE PRECISION variables,          
-C   is applicable to spheroids, finite circular cylinders,            
+C   CALCULATION OF THE AMPLITUDE AND PHASE MATRICES FOR
+C   A PARTICLE WITH AN AXIALLY SYMMETRIC SHAPE
+
+C   This version of the code uses DOUBLE PRECISION variables,
+C   is applicable to spheroids, finite circular cylinders,
 C   Chebyshev particles, and generalized Chebyshev particles
-C   (distorted water drops), and must be used along with the 
-C   accompanying files lpd.f and ampld.par.f.                
-                                                                       
-C   Last update 08/06/2005                                               
-                                                                       
+C   (distorted water drops), and must be used along with the
+C   accompanying files lpd.f and ampld.par.f.
+
+C   Last update 08/06/2005
+
 C   The code has been developed by Michael Mishchenko at the NASA
 C   Goddard Institute for Space Studies, New York.  The development
 C   of the code was supported by the NASA Radiation Sciences Program.
 
 C   We only request that in any publication using the code the source of
-C   the code be acknowledged and relevant references (see below) be 
+C   the code be acknowledged and relevant references (see below) be
 C   made.
 
 C   The computational method is based on the T-matrix approach
@@ -82,25 +82,25 @@ C   2002) is also available in the .pdf format at the web site
 C
 C   http://www.giss.nasa.gov/~crmim/books.html
 
-C   One of the main advantages of the T-matrix method is that the      
-C   T-matrix for a given nonspherical particle needs to be computed    
-C   only once and then can be used any number of times for computing   
-C   the amplitude and phase matrices for any directions of the incident 
-C   and scattered beams.  This makes the T-matrix method           
-C   extremely convenient and efficient in averaging over particle      
-C   orientations and/or directions of incidence (or scattering).       
-                                                                       
+C   One of the main advantages of the T-matrix method is that the
+C   T-matrix for a given nonspherical particle needs to be computed
+C   only once and then can be used any number of times for computing
+C   the amplitude and phase matrices for any directions of the incident
+C   and scattered beams.  This makes the T-matrix method
+C   extremely convenient and efficient in averaging over particle
+C   orientations and/or directions of incidence (or scattering).
+
 C   The use of extended precision variables (Ref. 1) can significantly
-C   increase the maximum convergent equivalent-sphere size parameter 
-C   and make it well larger than 100 (depending on refractive index    
-C   and aspect ratio).  The extended-precision code is also available. 
-C   However, the use of extended precision varibales results in a      
-C   greater consumption of CPU time.                                   
-C   On IBM RISC workstations, that code is approximately               
-C   five times slower than this double-precision code.  The            
-C   CPU time difference between the double-precision and extended-     
-C   precision codes can be larger on supercomputers.                   
-                                                                       
+C   increase the maximum convergent equivalent-sphere size parameter
+C   and make it well larger than 100 (depending on refractive index
+C   and aspect ratio).  The extended-precision code is also available.
+C   However, the use of extended precision varibales results in a
+C   greater consumption of CPU time.
+C   On IBM RISC workstations, that code is approximately
+C   five times slower than this double-precision code.  The
+C   CPU time difference between the double-precision and extended-
+C   precision codes can be larger on supercomputers.
+
 C   This is the first part of the full T-matrix code.  The second part,
 C   lpq.f, is completely independent of the first part. It contains no
 C   T-matrix-specific subroutines and can be compiled separately.
@@ -114,106 +114,106 @@ C   scheme. LAPACK stands for Linear Algebra PACKage. The latter is
 C   publicly available at the following internet site:
 C
 C   http://www.netlib.org/lapack/
- 
-                                                                       
-C   INPUT PARAMETERS:                                                  
-C                                                                      
-C      AXI - equivalent-sphere radius                                  
-C      RAT = 1 - particle size is specified in terms of the            
-C                equal-volume-sphere radius                             
-C      RAT.ne.1 - particle size is specified in terms of the           
-C                equal-surface-area-sphere radius                      
-C      LAM - WAVELENGTH OF INCIDENT LIGHT                                       
-C      MRR and MRI - real and imaginary parts of the refractive        
-C                  index                                               
-C      EPS and NP - specify the shape of the particles.                
-C             For spheroids NP=-1 and EPS is the ratio of the          
-C                 horizontal to rotational axes.  EPS is larger than   
-C                 1 for oblate spheroids and smaller than 1 for        
-C                 prolate spheroids.                                   
-C             For cylinders NP=-2 and EPS is the ratio of the          
-C                 diameter to the length.                              
-C             For Chebyshev particles NP must be positive and 
-C                 is the degree of the Chebyshev polynomial, while     
-C                 EPS is the deformation parameter (Ref. 5).                    
+
+
+C   INPUT PARAMETERS:
+C
+C      AXI - equivalent-sphere radius
+C      RAT = 1 - particle size is specified in terms of the
+C                equal-volume-sphere radius
+C      RAT.ne.1 - particle size is specified in terms of the
+C                equal-surface-area-sphere radius
+C      LAM - WAVELENGTH OF INCIDENT LIGHT
+C      MRR and MRI - real and imaginary parts of the refractive
+C                  index
+C      EPS and NP - specify the shape of the particles.
+C             For spheroids NP=-1 and EPS is the ratio of the
+C                 horizontal to rotational axes.  EPS is larger than
+C                 1 for oblate spheroids and smaller than 1 for
+C                 prolate spheroids.
+C             For cylinders NP=-2 and EPS is the ratio of the
+C                 diameter to the length.
+C             For Chebyshev particles NP must be positive and
+C                 is the degree of the Chebyshev polynomial, while
+C                 EPS is the deformation parameter (Ref. 5).
 C             For generalized Chebyshev particles (describing the shape
 C                 of distorted water drops) NP=-3.  The coefficients
 C                 of the Chebyshev polynomial expansion of the particle
 C                 shape (Ref. 7) are specified in subroutine DROP.
-C      DDELT - accuracy of the computations                            
-C      NDGS - parameter controlling the number of division points      
-C             in computing integrals over the particle surface (Ref. 5).        
-C             For compact particles, the recommended value is 2.       
-C             For highly aspherical particles larger values (3, 4,...) 
-C             may be necessary to obtain convergence.                  
-C             The code does not check convergence over this parameter. 
-C             Therefore, control comparisons of results obtained with  
-C             different NDGS-values are recommended.                   
-C      ALPHA and BETA - Euler angles (in degrees) specifying the orientation 
+C      DDELT - accuracy of the computations
+C      NDGS - parameter controlling the number of division points
+C             in computing integrals over the particle surface (Ref. 5).
+C             For compact particles, the recommended value is 2.
+C             For highly aspherical particles larger values (3, 4,...)
+C             may be necessary to obtain convergence.
+C             The code does not check convergence over this parameter.
+C             Therefore, control comparisons of results obtained with
+C             different NDGS-values are recommended.
+C      ALPHA and BETA - Euler angles (in degrees) specifying the orientation
 C            of the scattering particle relative to the laboratory reference
 C            frame (Refs. 6 and 7).
 C      THET0 - zenith angle of the incident beam in degrees
-C      THET - zenith angle of the scattered beam in degrees    
-C      PHI0 - azimuth angle of the incident beam in degrees    
-C      PHI - azimuth angle of the scattered beam in degrees   
+C      THET - zenith angle of the scattered beam in degrees
+C      PHI0 - azimuth angle of the incident beam in degrees
+C      PHI - azimuth angle of the scattered beam in degrees
 C            (Refs. 6 and 7)
 C      ALPHA, BETA, THET0, THET, PHI0, and PHI are specified at the end of
-C      the main program before the line                                    
-C                                                                      
-C       "CALL AMPL (NMAX,...)"                     
-C                                                                      
-C      The part of the main program following the line 
-C                                                                      
-C       "COMPUTATION OF THE AMPLITUDE AND PHASE MATRICES"               
-C                                                                      
-C      can be repeated any number of times.  At this point the T-matrix 
-C      for the given scattering particle has already     
-C      been fully computed and can be repeatedly used in computations  
+C      the main program before the line
+C
+C       "CALL AMPL (NMAX,...)"
+C
+C      The part of the main program following the line
+C
+C       "COMPUTATION OF THE AMPLITUDE AND PHASE MATRICES"
+C
+C      can be repeated any number of times.  At this point the T-matrix
+C      for the given scattering particle has already
+C      been fully computed and can be repeatedly used in computations
 C      for any directions of illumination and scattering and any particle
-C      orientations.              
-                                                                       
-C   OUTPUT PARAMETERS:                                                 
-C                                                                      
-C      Elements of the 2x2 amplitude matrix       
+C      orientations.
+
+C   OUTPUT PARAMETERS:
+C
+C      Elements of the 2x2 amplitude matrix
 C      Elements of the 4x4 phase matrix
-                                                                       
-C   Note that LAM and AXI must be given in the same units of length        
-C   (e.g., microns).                                                          
-                                                                       
-C   The convergence of the T-matrix method for particles with          
-C   different sizes, refractive indices, and aspect ratios can be      
-C   dramatically different.  Usually, large sizes and large aspect     
-C   ratios cause problems.  The user of this code                      
-C   should "play" a little with different input parameters in          
-C   order to get an idea of the range of applicability of this         
-C   technique.  Sometimes decreasing the aspect ratio                  
-C   from 3 to 2 can increase the maximum convergent equivalent-        
-C   sphere size parameter by a factor of several.                      
-                                                                       
-C   The CPU time required rapidly increases with increasing ratio      
-C   radius/wavelength and/or with increasing particle asphericity.     
+
+C   Note that LAM and AXI must be given in the same units of length
+C   (e.g., microns).
+
+C   The convergence of the T-matrix method for particles with
+C   different sizes, refractive indices, and aspect ratios can be
+C   dramatically different.  Usually, large sizes and large aspect
+C   ratios cause problems.  The user of this code
+C   should "play" a little with different input parameters in
+C   order to get an idea of the range of applicability of this
+C   technique.  Sometimes decreasing the aspect ratio
+C   from 3 to 2 can increase the maximum convergent equivalent-
+C   sphere size parameter by a factor of several.
+
+C   The CPU time required rapidly increases with increasing ratio
+C   radius/wavelength and/or with increasing particle asphericity.
 C   This should be taken into account in planning massive computations.
-                                                                       
-C   Execution can be automatically terminated if dimensions of certain 
-C   arrays are not big enough or if the convergence procedure decides  
-C   that the accuracy of double-precision variables is insufficient  
-C   to obtain a converged T-matrix solution for given particles.       
-C   In all cases, a message appears explaining                         
-C   the cause of termination.                                          
-                                                                       
-C   The message                                                        
-C        "WARNING:  W IS GREATER THAN 1"                               
-C   means that the single-scattering albedo exceeds the maximum        
-C   possible value 1.  If W is greater than 1 by more than             
-C   DDELT, this message can be an indication of numerical              
-C   instability caused by extreme values of particle parameters.       
-                                                                       
-C   The message "WARNING: NGAUSS=NPNG1" means that convergence over    
-C   the parameter NG (see Ref. 2) cannot be obtained for the NPNG1     
+
+C   Execution can be automatically terminated if dimensions of certain
+C   arrays are not big enough or if the convergence procedure decides
+C   that the accuracy of double-precision variables is insufficient
+C   to obtain a converged T-matrix solution for given particles.
+C   In all cases, a message appears explaining
+C   the cause of termination.
+
+C   The message
+C        "WARNING:  W IS GREATER THAN 1"
+C   means that the single-scattering albedo exceeds the maximum
+C   possible value 1.  If W is greater than 1 by more than
+C   DDELT, this message can be an indication of numerical
+C   instability caused by extreme values of particle parameters.
+
+C   The message "WARNING: NGAUSS=NPNG1" means that convergence over
+C   the parameter NG (see Ref. 2) cannot be obtained for the NPNG1
 C   value specified in the PARAMETER statement in the file ampld.par.f.
 C   Often this is not a serious problem, especially for compact
 C   particles.
-                                                                       
+
 C   Larger and/or more aspherical particles may require larger
 C   values of the parameters NPN1, NPN4, and NPNG1 in the file
 C   ampld.par.f.  It is recommended to keep NPN1=NPN4+25 and
@@ -224,40 +224,40 @@ C   setting, the parameters NPN1, NPN4, and NPNG1 should be
 C   decreased. However, this will decrease the maximum size parameter
 C   that can be handled by the code.
 
-C   In some cases any increases of NPN1 will not make the T-matrix     
-C   computations convergent.  This means that the particle is just     
-C   too "bad" (extreme size parameter and/or extreme aspect ratio      
-C   and/or extreme refractive index).                                  
-C   The main program contains several PRINT statements which are       
-C   currently commentd out.  If uncommented, these statements will     
-C   produce numbers which show the convergence rate and can be         
-C   used to determine whether T-matrix computations for given particle 
-C   parameters will converge at all, whatever the parameter NPN1 is.   
-                                                                       
-C   Some of the common blocks are used to save memory rather than      
-C   to transfer data.  Therefore, if a compiler produces a warning     
-C   message that the lengths of a common block are different in        
-C   different subroutines, this is not a real problem.                 
-                                                                       
-C   The recommended value of DDELT is 0.001.  For bigger values,       
-C   false convergence can be obtained.                                 
-                                                                       
-C   In computations for spheres, use EPS=1.000001 instead of EPS=1.    
-C   EPS=1 can cause overflows in some rare cases.                      
-                                                                       
-C   For some compilers, DACOS must be raplaced by DARCOS and DASIN     
-C   by DARSIN.                                                         
-                                                                       
-C   I would highly appreciate informing me of any problems encountered 
-C   with this code.  Please send your message to the following         
-C   e-mail address:  CRMIM@GISS.NASA.GOV.                              
+C   In some cases any increases of NPN1 will not make the T-matrix
+C   computations convergent.  This means that the particle is just
+C   too "bad" (extreme size parameter and/or extreme aspect ratio
+C   and/or extreme refractive index).
+C   The main program contains several PRINT statements which are
+C   currently commentd out.  If uncommented, these statements will
+C   produce numbers which show the convergence rate and can be
+C   used to determine whether T-matrix computations for given particle
+C   parameters will converge at all, whatever the parameter NPN1 is.
+
+C   Some of the common blocks are used to save memory rather than
+C   to transfer data.  Therefore, if a compiler produces a warning
+C   message that the lengths of a common block are different in
+C   different subroutines, this is not a real problem.
+
+C   The recommended value of DDELT is 0.001.  For bigger values,
+C   false convergence can be obtained.
+
+C   In computations for spheres, use EPS=1.000001 instead of EPS=1.
+C   EPS=1 can cause overflows in some rare cases.
+
+C   For some compilers, DACOS must be raplaced by DARCOS and DASIN
+C   by DARSIN.
+
+C   I would highly appreciate informing me of any problems encountered
+C   with this code.  Please send your message to the following
+C   e-mail address:  CRMIM@GISS.NASA.GOV.
 
 C   WHILE THE COMPUTER PROGRAM HAS BEEN TESTED FOR A VARIETY OF CASES,
 C   IT IS NOT INCONCEIVABLE THAT IT CONTAINS UNDETECTED ERRORS. ALSO,
 C   INPUT PARAMETERS CAN BE USED WHICH ARE OUTSIDE THE ENVELOPE OF
 C   VALUES FOR WHICH RESULTS ARE COMPUTED ACCURATELY. FOR THIS REASON,
 C   THE AUTHORS AND THEIR ORGANIZATION DISCLAIM ALL LIABILITY FOR
-C   ANY DAMAGES THAT MAY RESULT FROM THE USE OF THE PROGRAM. 
+C   ANY DAMAGES THAT MAY RESULT FROM THE USE OF THE PROGRAM.
 
       SUBROUTINE CALCTMAT(AXI,RAT,LAM,MRR,MRI,EPS,NP,DDELT,NDGS,NMAX)
       IMPLICIT REAL*8 (A-H,O-Z)
@@ -284,25 +284,25 @@ Cf2py intent(out) nmax
      &     RT21(NPN6,NPN4,NPN4),RT22(NPN6,NPN4,NPN4),
      &     IT11(NPN6,NPN4,NPN4),IT12(NPN6,NPN4,NPN4),
      &     IT21(NPN6,NPN4,NPN4),IT22(NPN6,NPN4,NPN4)
- 
+
       COMMON /CT/ TR1,TI1
       COMMON /TMAT/ RT11,RT12,RT21,RT22,IT11,IT12,IT21,IT22
       COMMON /CHOICE/ ICHOICE
- 
+
 C  OPEN FILES *******************************************************
- 
+
 C      OPEN (6,FILE='test')
- 
+
 C  INPUT DATA ********************************************************
- 
+
 C      AXI=10D0
-C      RAT=0.1 D0 
+C      RAT=0.1 D0
 C      LAM=DACOS(-1D0)*2D0
 C      MRR=1.5 D0
-C      MRI=0.02 D0 
-C      EPS=0.5 D0 
+C      MRI=0.02 D0
+C      EPS=0.5 D0
 C      NP=-1
-C      DDELT=0.001D0 
+C      DDELT=0.001D0
 C      NDGS=2
 
       P=DACOS(-1D0)
@@ -345,7 +345,7 @@ C 8004 FORMAT('EQUAL-SURFACE-AREA-SPHERE RADIUS=',F8.4)
       INM1=MAX0(4,IXXX)
 C      IF (INM1.GE.NPN1) PRINT 7333, NPN1
       IF (INM1.GE.NPN1) STOP
-C 7333 FORMAT('CONVERGENCE IS NOT OBTAINED FOR NPN1=',I3,  
+C 7333 FORMAT('CONVERGENCE IS NOT OBTAINED FOR NPN1=',I3,
 C     &       '.  EXECUTION TERMINATED')
       QEXT1=0D0
       QSCA1=0D0
@@ -383,12 +383,12 @@ C 7334    FORMAT(' NMAX =', I3,'  DC2=',D8.2,'   DC1=',D8.2)
 C        PRINT 7334, NMAX,DSCA,DEXT
          IF(DSCA.LE.DDELT.AND.DEXT.LE.DDELT) GO TO 55
 C         IF (NMA.EQ.NPN1) PRINT 7333, NPN1
-         IF (NMA.EQ.NPN1) STOP      
+         IF (NMA.EQ.NPN1) STOP
    50 CONTINUE
    55 NNNGGG=NGAUSS+1
       MMAX=NMAX
 C      IF (NGAUSS.EQ.NPNG1) PRINT 7336
-      IF (NGAUSS.EQ.NPNG1) GO TO 155 
+      IF (NGAUSS.EQ.NPNG1) GO TO 155
       DO 150 NGAUS=NNNGGG,NPNG1
          NGAUSS=NGAUS
          NGGG=2*NGAUSS
@@ -523,10 +523,10 @@ Cf2py intent(in) alpha
 Cf2py intent(in) beta
 Cf2py intent(out) s
 Cf2py intent(out) z
-      
+
 C  AMPLITUDE MATRIX [Eqs. (2)-(4) of Ref. 6]
       CALL AMPL (NMAX,LAM,THET0,THET,PHI0,PHI,ALPHA,BETA,
-     &           S(1,1),S(1,2),S(2,1),S(2,2))     
+     &           S(1,1),S(1,2),S(2,1),S(2,2))
 C  PHASE MATRIX [Eqs. (13)-(29) of Ref. 6]
       Z(1,1)=0.5D0*(S(1,1)*DCONJG(S(1,1))+S(1,2)*DCONJG(S(1,2))
      &          +S(2,1)*DCONJG(S(2,1))+S(2,2)*DCONJG(S(2,2)))
@@ -548,7 +548,7 @@ C  PHASE MATRIX [Eqs. (13)-(29) of Ref. 6]
       Z(4,2)=(0D0,1D0)*(S(2,1)*DCONJG(S(1,1))-S(2,2)*DCONJG(S(1,2)))
       Z(4,3)=(0D0,-1D0)*(S(2,2)*DCONJG(S(1,1))-S(1,2)*DCONJG(S(2,1)))
       Z(4,4)=S(2,2)*DCONJG(S(1,1))-S(1,2)*DCONJG(S(2,1))
-C      WRITE (6,5000) 
+C      WRITE (6,5000)
 C      WRITE (6,5001) Z11,Z12,Z13,Z14
 C      WRITE (6,5001) Z21,Z22,Z23,Z24
 C      WRITE (6,5001) Z31,Z32,Z33,Z34
@@ -564,13 +564,13 @@ C 1001 FORMAT (' time =',F8.2,' min')
 C      STOP
       RETURN
       END
- 
+
 C********************************************************************
-                                           
-C   CALCULATION OF THE AMPLITUDE MATRIX       
- 
+
+C   CALCULATION OF THE AMPLITUDE MATRIX
+
       SUBROUTINE AMPL (NMAX,DLAM,TL,TL1,PL,PL1,ALPHA,BETA,
-     &                 VV,VH,HV,HH)  
+     &                 VV,VH,HV,HH)
       INCLUDE 'ampld.par.f'
       IMPLICIT REAL*8 (A-B,D-H,O-Z), COMPLEX*16 (C)
       REAL*8 AL(3,2),AL1(3,2),AP(2,3),AP1(2,3),B(3,3),
@@ -590,12 +590,12 @@ C   CALCULATION OF THE AMPLITUDE MATRIX
      &    TL.LT.0D0.OR.TL.GT.180D0.OR.
      &    TL1.LT.0D0.OR.TL1.GT.180D0.OR.
      &    PL.LT.0D0.OR.PL.GT.360D0.OR.
-     &    PL1.LT.0D0.OR.PL1.GT.360D0) THEN 
+     &    PL1.LT.0D0.OR.PL1.GT.360D0) THEN
 C          WRITE (6,2000)
           STOP
       ELSE
           CONTINUE
-      ENDIF  
+      ENDIF
 C 2000 FORMAT ('AN ANGULAR PARAMETER IS OUTSIDE ITS',
 C     &        ' ALLOWABLE RANGE')
       PIN=DACOS(-1D0)
@@ -619,7 +619,7 @@ C     &        ' ALLOWABLE RANGE')
       IF (PHIL1.GT.PIN) PHIL1=PHIL1-EPS
       IF (BET.LE.PIN2.AND.PIN2-BET.LE.EPS) BET=BET-EPS
       IF (BET.GT.PIN2.AND.BET-PIN2.LE.EPS) BET=BET+EPS
-      
+
 C_____________COMPUTE THETP, PHIP, THETP1, AND PHIP1, EQS. (8), (19), AND (20)
 
       CB=DCOS(BET)
@@ -664,7 +664,7 @@ C____________COMPUTE MATRIX BETA, EQ. (21)
       B(3,2)=SA*SB
       B(3,3)=CB
 
-C____________COMPUTE MATRICES AL AND AL1, EQ. (14) 
+C____________COMPUTE MATRICES AL AND AL1, EQ. (14)
 
       CP=DCOS(PHIL)
       SP=DSIN(PHIL)
@@ -683,10 +683,10 @@ C____________COMPUTE MATRICES AL AND AL1, EQ. (14)
       AL1(3,1)=-ST1
       AL1(3,2)=0D0
 
-C____________COMPUTE MATRICES AP^(-1) AND AP1^(-1), EQ. (15) 
+C____________COMPUTE MATRICES AP^(-1) AND AP1^(-1), EQ. (15)
 
       CT=CTP
-      ST=DSIN(THETP) 
+      ST=DSIN(THETP)
       CP=DCOS(PHIP)
       SP=DSIN(PHIP)
       CT1=CTP1
@@ -695,15 +695,15 @@ C____________COMPUTE MATRICES AP^(-1) AND AP1^(-1), EQ. (15)
       SP1=DSIN(PHIP1)
       AP(1,1)=CT*CP
       AP(1,2)=CT*SP
-      AP(1,3)=-ST  
+      AP(1,3)=-ST
       AP(2,1)=-SP
-      AP(2,2)=CP 
+      AP(2,2)=CP
       AP(2,3)=0D0
       AP1(1,1)=CT1*CP1
       AP1(1,2)=CT1*SP1
-      AP1(1,3)=-ST1   
+      AP1(1,3)=-ST1
       AP1(2,1)=-SP1
-      AP1(2,2)=CP1 
+      AP1(2,2)=CP1
       AP1(2,3)=0D0
 
 C____________COMPUTE MATRICES R AND R^(-1), EQ. (13)
@@ -754,13 +754,13 @@ C____________COMPUTE MATRICES R AND R^(-1), EQ. (13)
       DO 5 NN=1,NMAX
          DO 5 N=1,NMAX
             CN=CI**(NN-N-1)
-            DNN=DFLOAT((2*N+1)*(2*NN+1)) 
-            DNN=DNN/DFLOAT( N*NN*(N+1)*(NN+1) ) 
+            DNN=DFLOAT((2*N+1)*(2*NN+1))
+            DNN=DNN/DFLOAT( N*NN*(N+1)*(NN+1) )
             RN=DSQRT(DNN)
             CAL(N,NN)=CN*RN
     5 CONTINUE
       DCTH0=CTP
-      DCTH=CTP1 
+      DCTH=CTP1
       PH=PHIP1-PHIP
       VV=(0D0,0D0)
       VH=(0D0,0D0)
@@ -787,7 +787,7 @@ C____________COMPUTE MATRICES R AND R^(-1), EQ. (13)
 
                   CN=CAL(N,NN)*DV2N*DV2NN
 
-                  VV=VV+CN*CT22  
+                  VV=VV+CN*CT22
                   HH=HH+CN*CT11
 
                  ELSE
@@ -803,17 +803,17 @@ C____________COMPUTE MATRICES R AND R^(-1), EQ. (13)
                   D21=DV2N*DV1NN
                   D22=DV2N*DV2NN
 
-                  VV=VV+(CT11*D11+CT21*D21   
-     &                  +CT12*D12+CT22*D22)*CN1   
+                  VV=VV+(CT11*D11+CT21*D21
+     &                  +CT12*D12+CT22*D22)*CN1
 
-                  VH=VH+(CT11*D12+CT21*D22   
+                  VH=VH+(CT11*D12+CT21*D22
      &                  +CT12*D11+CT22*D21)*CN2
 
                   HV=HV-(CT11*D21+CT21*D11
-     &                  +CT12*D22+CT22*D12)*CN2   
+     &                  +CT12*D22+CT22*D12)*CN2
 
                   HH=HH+(CT11*D22+CT21*D12
-     &                  +CT12*D21+CT22*D11)*CN1      
+     &                  +CT12*D21+CT22*D11)*CN1
                ENDIF
   400    CONTINUE
   500 CONTINUE
@@ -830,8 +830,8 @@ C____________COMPUTE MATRICES R AND R^(-1), EQ. (13)
       VH=R1(1,1)*CVH+R1(1,2)*CHH
       HV=R1(2,1)*CVV+R1(2,2)*CHV
       HH=R1(2,1)*CVH+R1(2,2)*CHH
-      
-C      WRITE (6,1005) TL,TL1,PL,PL1,ALPHA,BETA 
+
+C      WRITE (6,1005) TL,TL1,PL,PL1,ALPHA,BETA
 C      WRITE (6,1006)
 C      PRINT 1101, VV
 C      PRINT 1102, VH
@@ -846,7 +846,7 @@ C     &        '  phi=',F6.2,'  alpha=',F6.2,'  beta=',F6.2)
 C 1006 FORMAT ('AMPLITUDE MATRIX')
       RETURN
       END
-      
+
 C*****************************************************************
 C
 C     Calculation of the functions
@@ -872,12 +872,12 @@ C     0.LE.X.LE.1
       DSI=QS1
       IF (M.NE.0) GO TO 20
       D1=1D0
-      D2=X  
-      DO 5 N=1,NMAX  
+      D2=X
+      DO 5 N=1,NMAX
          QN=DFLOAT(N)
          QN1=DFLOAT(N+1)
          QN2=DFLOAT(2*N+1)
-         D3=(QN2*X*D2-QN*D1)/QN1 
+         D3=(QN2*X*D2-QN*D1)/QN1
          DER=QS1*(QN1*QN/QN2)*(-D1+D3)
          DV1(N)=D2*DSI
          DV2(N)=DER
@@ -891,7 +891,7 @@ C     0.LE.X.LE.1
          A=A*DSQRT(DFLOAT(I2-1)/DFLOAT(I2))*QS
    25 CONTINUE
       D1=0D0
-      D2=A 
+      D2=A
       DO 30 N=M,NMAX
          QN=DFLOAT(N)
          QN2=DFLOAT(2*N+1)
@@ -916,7 +916,7 @@ C     0.LE.X.LE.1
          DV2(N)=DN
   110 CONTINUE
       RETURN
-      END 
+      END
 
 C**********************************************************************
 
@@ -927,7 +927,7 @@ C**********************************************************************
      *        X2(NPNG1),W2(NPNG1),
      *        S(NPNG2),SS(NPNG2),
      *        AN(NPN1),ANN(NPN1,NPN1),DD(NPN1)
- 
+
       DO 10 N=1,NMAX
            NN=N*(N+1)
            AN(N)=DFLOAT(NN)
@@ -970,9 +970,9 @@ C**********************************************************************
    20 CONTINUE
       RETURN
       END
- 
+
 C**********************************************************************
- 
+
       SUBROUTINE VARY (LAM,MRR,MRI,A,EPS,NP,NGAUSS,X,P,PPI,PIR,PII,
      *                 R,DR,DDR,DRR,DRI,NMAX)
       INCLUDE 'ampld.par.f'
@@ -1023,9 +1023,9 @@ C 9000 FORMAT(' NMAX = ',I2,', i.e., greater than ',I3)
       CALL BESS(Z,ZR,ZI,NG,NMAX,NNMAX1,NNMAX2)
       RETURN
       END
- 
+
 C**********************************************************************
- 
+
       SUBROUTINE RSP1 (X,NG,NGAUSS,REV,EPS,NP,R,DR)
       IMPLICIT REAL*8 (A-H,O-Z)
       REAL*8 X(NG),R(NG),DR(NG)
@@ -1046,9 +1046,9 @@ C**********************************************************************
    50 CONTINUE
       RETURN
       END
- 
+
 C**********************************************************************
- 
+
       SUBROUTINE RSP2 (X,NG,REV,EPS,N,R,DR)
       IMPLICIT REAL*8 (A-H,O-Z)
       REAL*8 X(NG),R(NG),DR(NG)
@@ -1071,9 +1071,9 @@ c        WRITE (6,*) I,R(I),DR(I)
    50 CONTINUE
       RETURN
       END
- 
+
 C**********************************************************************
- 
+
       SUBROUTINE RSP3 (X,NG,NGAUSS,REV,EPS,R,DR)
       IMPLICIT REAL*8 (A-H,O-Z)
       REAL*8 X(NG),R(NG),DR(NG)
@@ -1095,7 +1095,7 @@ C**********************************************************************
    50 CONTINUE
       RETURN
       END
- 
+
 C**********************************************************************
 C                                                                     *
 C   Calculation of the functions R(I)=r(y)**2 and                     *
@@ -1133,7 +1133,7 @@ c        WRITE (6,*) I,R(I),DR(I)
       END
 
 C*********************************************************************
- 
+
       SUBROUTINE BESS (X,XR,XI,NG,NMAX,NNMAX1,NNMAX2)
       INCLUDE 'ampld.par.f'
       IMPLICIT REAL*8 (A-H,O-Z)
@@ -1145,7 +1145,7 @@ C*********************************************************************
      *        ADJ(NPN1),ADY(NPN1),ADJR(NPN1),
      *        ADJI(NPN1)
       COMMON /CBESS/ J,Y,JR,JI,DJ,DY,DJR,DJI
- 
+
       DO 10 I=1,NG
            XX=X(I)
            CALL RJB(XX,AJ,ADJ,NMAX,NNMAX1)
@@ -1165,9 +1165,9 @@ C*********************************************************************
    10 CONTINUE
       RETURN
       END
- 
+
 C**********************************************************************
- 
+
       SUBROUTINE RJB(X,Y,U,NMAX,NNMAX)
       IMPLICIT REAL*8 (A-H,O-Z)
       REAL*8 Y(NMAX),U(NMAX),Z(800)
@@ -1192,9 +1192,9 @@ C**********************************************************************
    10 CONTINUE
       RETURN
       END
- 
+
 C**********************************************************************
- 
+
       SUBROUTINE RYB(X,Y,V,NMAX)
       IMPLICIT REAL*8 (A-H,O-Z)
       REAL*8 Y(NMAX),V(NMAX)
@@ -1214,7 +1214,7 @@ C**********************************************************************
   10       V(I)=Y(I-1)-DFLOAT(I)*X1*Y(I)
       RETURN
       END
- 
+
 C**********************************************************************
 C                                                                     *
 C   CALCULATION OF SPHERICAL BESSEL FUNCTIONS OF THE FIRST KIND       *
@@ -1223,7 +1223,7 @@ C   BY USING BACKWARD RECURSION. PARAMETR NNMAX DETERMINES NUMERICAL  *
 C   ACCURACY. U=UR+I*UI - FUNCTION (1/X)(D/DX)(X*J(X))                *
 C                                                                     *
 C**********************************************************************
- 
+
       SUBROUTINE CJB (XR,XI,YR,YI,UR,UI,NMAX,NNMAX)
       INCLUDE 'ampld.par.f'
       IMPLICIT REAL*8 (A-H,O-Z)
@@ -1233,7 +1233,7 @@ C**********************************************************************
       L=NMAX+NNMAX
       XRXI=1D0/(XR*XR+XI*XI)
       CXXR=XR*XRXI
-      CXXI=-XI*XRXI 
+      CXXI=-XI*XRXI
       QF=1D0/DFLOAT(2*L+1)
       CZR(L)=XR*QF
       CZI(L)=XI*QF
@@ -1246,7 +1246,7 @@ C**********************************************************************
          ARI=1D0/(AR*AR+AI*AI)
          CZR(I1)=AR*ARI
          CZI(I1)=-AI*ARI
-      ENDDO   
+      ENDDO
       AR=CXXR-CZR(1)
       AI=CXXI-CZI(1)
       ARI=1D0/(AR*AR+AI*AI)
@@ -1290,12 +1290,12 @@ C**********************************************************************
          YI(I)=CYII
          UR(I)=CUIR
          UI(I)=CUII
-      ENDDO   
+      ENDDO
       RETURN
       END
- 
+
 C**********************************************************************
- 
+
       SUBROUTINE TMATR0 (NGAUSS,X,W,AN,ANN,S,SS,PPI,PIR,PII,R,DR,DDR,
      *                  DRR,DRI,NMAX,NCHECK)
       INCLUDE 'ampld.par.f'
@@ -1309,7 +1309,7 @@ C**********************************************************************
      *        D1(NPNG2,NPN1),D2(NPNG2,NPN1),
      *        DRI(NPNG2),DS(NPNG2),DSS(NPNG2),RR(NPNG2),
      *        DV1(NPN1),DV2(NPN1)
- 
+
       REAL*8  R11(NPN1,NPN1),R12(NPN1,NPN1),
      *        R21(NPN1,NPN1),R22(NPN1,NPN1),
      *        I11(NPN1,NPN1),I12(NPN1,NPN1),
@@ -1324,7 +1324,7 @@ C**********************************************************************
      *        TQR(NPN2,NPN2),TQI(NPN2,NPN2),
      *        TRGQR(NPN2,NPN2),TRGQI(NPN2,NPN2)
       REAL*8 TR1(NPN2,NPN2),TI1(NPN2,NPN2)
-      COMMON /TMAT99/ 
+      COMMON /TMAT99/
      &            R11,R12,R21,R22,I11,I12,I21,I22,RG11,RG12,RG21,RG22,
      &            IG11,IG12,IG21,IG22
       COMMON /CBESS/ J,Y,JR,JI,DJ,DY,DJR,DJI
@@ -1362,7 +1362,7 @@ C**********************************************************************
    30 DO 40 I=1,NGSS
            RR(I)=W(I)*R(I)
    40 CONTINUE
- 
+
       DO 300  N1=MM1,NMAX
            AN1=AN(N1)
            DO 300 N2=MM1,NMAX
@@ -1386,7 +1386,7 @@ C**********************************************************************
                     A21=D2N1*D1N2
                     A22=D2N1*D2N2
                     AA1=A12+A21
- 
+
                     QJ1=J(I,N1)
                     QY1=Y(I,N1)
                     QJR2=JR(I,N2)
@@ -1395,52 +1395,52 @@ C**********************************************************************
                     QDJI2=DJI(I,N2)
                     QDJ1=DJ(I,N1)
                     QDY1=DY(I,N1)
- 
+
                     C1R=QJR2*QJ1
                     C1I=QJI2*QJ1
                     B1R=C1R-QJI2*QY1
                     B1I=C1I+QJR2*QY1
- 
+
                     C2R=QJR2*QDJ1
                     C2I=QJI2*QDJ1
                     B2R=C2R-QJI2*QDY1
                     B2I=C2I+QJR2*QDY1
- 
+
                     DDRI=DDR(I)
                     C3R=DDRI*C1R
                     C3I=DDRI*C1I
                     B3R=DDRI*B1R
                     B3I=DDRI*B1I
- 
+
                     C4R=QDJR2*QJ1
                     C4I=QDJI2*QJ1
                     B4R=C4R-QDJI2*QY1
                     B4I=C4I+QDJR2*QY1
- 
+
                     DRRI=DRR(I)
                     DRII=DRI(I)
                     C5R=C1R*DRRI-C1I*DRII
                     C5I=C1I*DRRI+C1R*DRII
                     B5R=B1R*DRRI-B1I*DRII
                     B5I=B1I*DRRI+B1R*DRII
- 
+
                     URI=DR(I)
                     RRI=RR(I)
- 
+
                     F1=RRI*A22
                     F2=RRI*URI*AN1*A12
                     AR12=AR12+F1*B2R+F2*B3R
                     AI12=AI12+F1*B2I+F2*B3I
                     GR12=GR12+F1*C2R+F2*C3R
                     GI12=GI12+F1*C2I+F2*C3I
- 
+
                     F2=RRI*URI*AN2*A21
                     AR21=AR21+F1*B4R+F2*B5R
                     AI21=AI21+F1*B4I+F2*B5I
                     GR21=GR21+F1*C4R+F2*C5R
                     GI21=GI21+F1*C4I+F2*C5I
   200           CONTINUE
- 
+
   205           AN12=ANN(N1,N2)*FACTOR
                 R12(N1,N2)=AR12*AN12
                 R21(N1,N2)=AR21*AN12
@@ -1451,11 +1451,11 @@ C**********************************************************************
                 IG12(N1,N2)=GI12*AN12
                 IG21(N1,N2)=GI21*AN12
   300 CONTINUE
- 
+
       TPIR=PIR
       TPII=PII
       TPPI=PPI
- 
+
       NM=NMAX
       DO 310 N1=MM1,NMAX
            K1=N1-MM1+1
@@ -1463,38 +1463,38 @@ C**********************************************************************
            DO 310 N2=MM1,NMAX
                 K2=N2-MM1+1
                 KK2=K2+NM
- 
+
                 TAR12= I12(N1,N2)
                 TAI12=-R12(N1,N2)
                 TGR12= IG12(N1,N2)
                 TGI12=-RG12(N1,N2)
- 
+
                 TAR21=-I21(N1,N2)
                 TAI21= R21(N1,N2)
                 TGR21=-IG21(N1,N2)
                 TGI21= RG21(N1,N2)
- 
+
                 TQR(K1,K2)=TPIR*TAR21-TPII*TAI21+TPPI*TAR12
                 TQI(K1,K2)=TPIR*TAI21+TPII*TAR21+TPPI*TAI12
                 TRGQR(K1,K2)=TPIR*TGR21-TPII*TGI21+TPPI*TGR12
                 TRGQI(K1,K2)=TPIR*TGI21+TPII*TGR21+TPPI*TGI12
- 
+
                 TQR(K1,KK2)=0D0
                 TQI(K1,KK2)=0D0
                 TRGQR(K1,KK2)=0D0
                 TRGQI(K1,KK2)=0D0
- 
+
                 TQR(KK1,K2)=0D0
                 TQI(KK1,K2)=0D0
                 TRGQR(KK1,K2)=0D0
                 TRGQI(KK1,K2)=0D0
- 
+
                 TQR(KK1,KK2)=TPIR*TAR12-TPII*TAI12+TPPI*TAR21
                 TQI(KK1,KK2)=TPIR*TAI12+TPII*TAR12+TPPI*TAI21
                 TRGQR(KK1,KK2)=TPIR*TGR12-TPII*TGI12+TPPI*TGR21
                 TRGQI(KK1,KK2)=TPIR*TGI12+TPII*TGR12+TPPI*TGI21
   310 CONTINUE
- 
+
       NNMAX=2*NM
       DO 320 N1=1,NNMAX
            DO 320 N2=1,NNMAX
@@ -1506,9 +1506,9 @@ C**********************************************************************
       CALL TT(NMAX,NCHECK)
       RETURN
       END
- 
+
 C**********************************************************************
- 
+
       SUBROUTINE TMATR (M,NGAUSS,X,W,AN,ANN,S,SS,PPI,PIR,PII,R,DR,DDR,
      *                  DRR,DRI,NMAX,NCHECK)
       INCLUDE 'ampld.par.f'
@@ -1522,7 +1522,7 @@ C**********************************************************************
      *        D1(NPNG2,NPN1),D2(NPNG2,NPN1),
      *        DRI(NPNG2),DS(NPNG2),DSS(NPNG2),RR(NPNG2),
      *        DV1(NPN1),DV2(NPN1)
- 
+
       REAL*8  R11(NPN1,NPN1),R12(NPN1,NPN1),
      *        R21(NPN1,NPN1),R22(NPN1,NPN1),
      *        I11(NPN1,NPN1),I12(NPN1,NPN1),
@@ -1537,7 +1537,7 @@ C**********************************************************************
      *        TQR(NPN2,NPN2),TQI(NPN2,NPN2),
      *        TRGQR(NPN2,NPN2),TRGQI(NPN2,NPN2)
       REAL*8 TR1(NPN2,NPN2),TI1(NPN2,NPN2)
-      COMMON /TMAT99/ 
+      COMMON /TMAT99/
      &            R11,R12,R21,R22,I11,I12,I21,I22,RG11,RG12,RG21,RG22,
      &            IG11,IG12,IG21,IG22
       COMMON /CBESS/ J,Y,JR,JI,DJ,DY,DJR,DJI
@@ -1580,7 +1580,7 @@ C**********************************************************************
            DSS(I)=SS(I)*QMM
            RR(I)=WR
    40 CONTINUE
- 
+
       DO 300  N1=MM1,NMAX
            AN1=AN(N1)
            DO 300 N2=MM1,NMAX
@@ -1602,7 +1602,7 @@ C**********************************************************************
                 GI21=0D0
                 GI22=0D0
                 SI=SIG(N1+N2)
- 
+
                 DO 200 I=1,NGSS
                     D1N1=D1(I,N1)
                     D2N1=D2(I,N1)
@@ -1622,78 +1622,78 @@ C**********************************************************************
                     QDJI2=DJI(I,N2)
                     QDJ1=DJ(I,N1)
                     QDY1=DY(I,N1)
- 
+
                     C1R=QJR2*QJ1
                     C1I=QJI2*QJ1
                     B1R=C1R-QJI2*QY1
                     B1I=C1I+QJR2*QY1
- 
+
                     C2R=QJR2*QDJ1
                     C2I=QJI2*QDJ1
                     B2R=C2R-QJI2*QDY1
                     B2I=C2I+QJR2*QDY1
- 
+
                     DDRI=DDR(I)
                     C3R=DDRI*C1R
                     C3I=DDRI*C1I
                     B3R=DDRI*B1R
                     B3I=DDRI*B1I
- 
+
                     C4R=QDJR2*QJ1
                     C4I=QDJI2*QJ1
                     B4R=C4R-QDJI2*QY1
                     B4I=C4I+QDJR2*QY1
- 
+
                     DRRI=DRR(I)
                     DRII=DRI(I)
                     C5R=C1R*DRRI-C1I*DRII
                     C5I=C1I*DRRI+C1R*DRII
                     B5R=B1R*DRRI-B1I*DRII
                     B5I=B1I*DRRI+B1R*DRII
- 
+
                     C6R=QDJR2*QDJ1
                     C6I=QDJI2*QDJ1
                     B6R=C6R-QDJI2*QDY1
                     B6I=C6I+QDJR2*QDY1
- 
+
                     C7R=C4R*DDRI
                     C7I=C4I*DDRI
                     B7R=B4R*DDRI
                     B7I=B4I*DDRI
- 
+
                     C8R=C2R*DRRI-C2I*DRII
                     C8I=C2I*DRRI+C2R*DRII
                     B8R=B2R*DRRI-B2I*DRII
                     B8I=B2I*DRRI+B2R*DRII
- 
+
                     URI=DR(I)
                     DSI=DS(I)
                     DSSI=DSS(I)
                     RRI=RR(I)
- 
+
                     IF (NCHECK.EQ.1.AND.SI.GT.0D0) GO TO 150
- 
+
                     E1=DSI*AA1
                     AR11=AR11+E1*B1R
                     AI11=AI11+E1*B1I
                     GR11=GR11+E1*C1R
                     GI11=GI11+E1*C1I
                     IF (NCHECK.EQ.1) GO TO 160
- 
+
   150               F1=RRI*AA2
                     F2=RRI*URI*AN1*A12
                     AR12=AR12+F1*B2R+F2*B3R
                     AI12=AI12+F1*B2I+F2*B3I
                     GR12=GR12+F1*C2R+F2*C3R
                     GI12=GI12+F1*C2I+F2*C3I
- 
+
                     F2=RRI*URI*AN2*A21
                     AR21=AR21+F1*B4R+F2*B5R
                     AI21=AI21+F1*B4I+F2*B5I
                     GR21=GR21+F1*C4R+F2*C5R
                     GI21=GI21+F1*C4I+F2*C5I
                     IF (NCHECK.EQ.1) GO TO 200
- 
+
   160               E2=DSI*URI*A11
                     E3=E2*AN2
                     E2=E2*AN1
@@ -1719,7 +1719,7 @@ C**********************************************************************
                 IG12(N1,N2)=GI12*AN12
                 IG21(N1,N2)=GI21*AN12
                 IG22(N1,N2)=GI22*AN12
- 
+
   300 CONTINUE
       TPIR=PIR
       TPII=PII
@@ -1731,48 +1731,48 @@ C**********************************************************************
            DO 310 N2=MM1,NMAX
                 K2=N2-MM1+1
                 KK2=K2+NM
- 
+
                 TAR11=-R11(N1,N2)
                 TAI11=-I11(N1,N2)
                 TGR11=-RG11(N1,N2)
                 TGI11=-IG11(N1,N2)
- 
+
                 TAR12= I12(N1,N2)
                 TAI12=-R12(N1,N2)
                 TGR12= IG12(N1,N2)
                 TGI12=-RG12(N1,N2)
- 
+
                 TAR21=-I21(N1,N2)
                 TAI21= R21(N1,N2)
                 TGR21=-IG21(N1,N2)
                 TGI21= RG21(N1,N2)
- 
+
                 TAR22=-R22(N1,N2)
                 TAI22=-I22(N1,N2)
                 TGR22=-RG22(N1,N2)
                 TGI22=-IG22(N1,N2)
- 
+
                 TQR(K1,K2)=TPIR*TAR21-TPII*TAI21+TPPI*TAR12
                 TQI(K1,K2)=TPIR*TAI21+TPII*TAR21+TPPI*TAI12
                 TRGQR(K1,K2)=TPIR*TGR21-TPII*TGI21+TPPI*TGR12
                 TRGQI(K1,K2)=TPIR*TGI21+TPII*TGR21+TPPI*TGI12
- 
+
                 TQR(K1,KK2)=TPIR*TAR11-TPII*TAI11+TPPI*TAR22
                 TQI(K1,KK2)=TPIR*TAI11+TPII*TAR11+TPPI*TAI22
                 TRGQR(K1,KK2)=TPIR*TGR11-TPII*TGI11+TPPI*TGR22
                 TRGQI(K1,KK2)=TPIR*TGI11+TPII*TGR11+TPPI*TGI22
- 
+
                 TQR(KK1,K2)=TPIR*TAR22-TPII*TAI22+TPPI*TAR11
                 TQI(KK1,K2)=TPIR*TAI22+TPII*TAR22+TPPI*TAI11
                 TRGQR(KK1,K2)=TPIR*TGR22-TPII*TGI22+TPPI*TGR11
                 TRGQI(KK1,K2)=TPIR*TGI22+TPII*TGR22+TPPI*TGI11
- 
+
                 TQR(KK1,KK2)=TPIR*TAR12-TPII*TAI12+TPPI*TAR21
                 TQI(KK1,KK2)=TPIR*TAI12+TPII*TAR12+TPPI*TAI21
                 TRGQR(KK1,KK2)=TPIR*TGR12-TPII*TGI12+TPPI*TGR21
                 TRGQI(KK1,KK2)=TPIR*TGI12+TPII*TGR12+TPPI*TGI21
   310 CONTINUE
- 
+
       NNMAX=2*NM
       DO 320 N1=1,NNMAX
            DO 320 N2=1,NNMAX
@@ -1781,48 +1781,48 @@ C**********************************************************************
                 RGQR(N1,N2)=TRGQR(N1,N2)
                 RGQI(N1,N2)=TRGQI(N1,N2)
   320 CONTINUE
- 
+
       CALL TT(NM,NCHECK)
- 
+
       RETURN
       END
- 
+
 C*****************************************************************
- 
+
       SUBROUTINE VIG (X, NMAX, M, DV1, DV2)
       INCLUDE 'ampld.par.f'
       IMPLICIT REAL*8 (A-H,O-Z)
       REAL*8 DV1(NPN1),DV2(NPN1)
- 
+
       A=1D0
       QS=DSQRT(1D0-X*X)
       QS1=1D0/QS
       DO N=1,NMAX
          DV1(N)=0D0
          DV2(N)=0D0
-      ENDDO   
+      ENDDO
       IF (M.NE.0) GO TO 20
       D1=1D0
-      D2=X  
-      DO N=1,NMAX  
+      D2=X
+      DO N=1,NMAX
          QN=DFLOAT(N)
          QN1=DFLOAT(N+1)
          QN2=DFLOAT(2*N+1)
-         D3=(QN2*X*D2-QN*D1)/QN1 
+         D3=(QN2*X*D2-QN*D1)/QN1
          DER=QS1*(QN1*QN/QN2)*(-D1+D3)
          DV1(N)=D2
          DV2(N)=DER
          D1=D2
          D2=D3
-      ENDDO   
+      ENDDO
       RETURN
    20 QMM=DFLOAT(M*M)
       DO I=1,M
          I2=I*2
          A=A*DSQRT(DFLOAT(I2-1)/DFLOAT(I2))*QS
-      ENDDO   
+      ENDDO
       D1=0D0
-      D2=A 
+      D2=A
       DO N=M,NMAX
          QN=DFLOAT(N)
          QN2=DFLOAT(2*N+1)
@@ -1835,10 +1835,10 @@ C*****************************************************************
          DV2(N)=DER
          D1=D2
          D2=D3
-      ENDDO   
+      ENDDO
       RETURN
-      END 
- 
+      END
+
 C**********************************************************************
 C                                                                     *
 C   CALCULATION OF THE MATRIX    T = - RG(Q) * (Q**(-1))              *
@@ -1847,7 +1847,7 @@ C   INPUT INFORTMATION IS IN COMMON /CTT/                             *
 C   OUTPUT INFORMATION IS IN COMMON /CT/                              *
 C                                                                     *
 C**********************************************************************
- 
+
       SUBROUTINE TT(NMAX,NCHECK)
       INCLUDE 'ampld.par.f'
       IMPLICIT REAL*8 (A-H,O-Z)
@@ -1897,7 +1897,7 @@ C 1100 FORMAT ('WARNING:  info=', i2)
       END
 
 C*****************************************************************
- 
+
       SUBROUTINE SAREA (D,RAT)
       IMPLICIT REAL*8 (A-H,O-Z)
       IF (D.GE.1) GO TO 10
@@ -1913,9 +1913,9 @@ C*****************************************************************
       RAT=1D0/R
       return
       END
- 
+
 c****************************************************************
- 
+
       SUBROUTINE SURFCH (N,E,RAT)
       IMPLICIT REAL*8 (A-H,O-Z)
       REAL*8 X(60),W(60)
@@ -1944,9 +1944,9 @@ c****************************************************************
       RAT=RV/RS
       RETURN
       END
- 
+
 C********************************************************************
- 
+
       SUBROUTINE SAREAC (EPS,RAT)
       IMPLICIT REAL*8 (A-H,O-Z)
       RAT=(1.5D0/EPS)**(1D0/3D0)
@@ -2012,7 +2012,7 @@ C    N - NUMBER OF POINTS                                             *
 C    Z - DIVISION POINTS                                              *
 C    W - WEIGHTS                                                      *
 C**********************************************************************
- 
+
       SUBROUTINE GAUSS (N,IND1,IND2,Z,W)
       IMPLICIT REAL*8 (A-H,P-Z)
       REAL*8 Z(N),W(N)
