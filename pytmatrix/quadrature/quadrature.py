@@ -80,7 +80,7 @@ def discrete_gautschi(z, w, n_iter):
         (p_prev, p_prev_norm) = (p, p_norm)
         p = p_new
 
-    return (a, b[1:])
+    return a, b
 
 
 def get_points_and_weights(
