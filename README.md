@@ -1,37 +1,61 @@
 # PyTMatrix-LTE
 
-A Python code for computing the scattering properties of homogeneous nonspherical scatterers with the _T_-Matrix method.\
+A Python library for computing the scattering properties of homogeneous nonspherical scatterers with the _T_-Matrix method.\
 Uses the [T-Matrix code by M. I. Mishchenko and L. D. Travis](http://www.giss.nasa.gov/staff/mmishchenko/t_matrix.html).
 
-This is adapted from the original PyTMatrix code by Jussi Leinonen, which can be found [here](https://github.com/jleinonen/pytmatrix).\
-It was adapted to run with newer versions of python (installation of the original code was buggy for python>3.6, fully deprecated for python>3.12).\
-The adaptations include:
+This is repository adapted the original PyTMatrix code by Jussi Leinonen, which can be found [here](https://github.com/jleinonen/pytmatrix), to run with newer versions of python:
+installation of the original code was buggy for `python>3.6`, fully deprecated for `python>3.12` and `numpy>2`.
 
+The code adaptations include:
 - Migration from distutils to setuptools (setup.py rewritten)
 - Migration of certain scipy functions to new names
+- Optimization and vectorization of some computations
 
 ## Installation
 
-The installation instructions in the original wiki are outdated and **do not** work for recent python versions (python>3.6).\
-Use the following instructions instead (given for python 3.12, but should work for any python>3.6).
+The installation instructions in the original pytmatrix library are outdated and **do not** work for recent python versions (`python>3.6`).
 
-- Clone the repository: `git clone ...`
-- Activate a conda environment with the following required packages: `numpy`, `scipy`, `meson`. You can create an appropriate environment with the following command: `conda create -n tmatrix python=3.12 numpy scipy meson`
-- In the terminal run the following commands:
+The instructions below describe how to install the **LTE-maintained fork of pyTMatrix**, which is compatible with modern Python interpreters.
 
+**WARNING**:  Installing pyTMatrix directly via `pip install git+https://github.com/ltelab/pytmatrix-lte.git` does not work at this time. We welcome contributions to enable this type of installation !
+
+### 1. Install dependencies
+
+Make sure you have the GNU Fortran Compiler (`gfortran`) and the Meson build system installed. You can install them via conda:
+
+```bash
+conda install -c conda-forge gfortran meson
 ```
+
+### 2. Clone the repository
+
+Fork and clone the LTE-maintained pyTMatrix repository:
+
+```bash
+git clone https://github.com/<your-account>/pytmatrix-lte.git
+```
+
+### 3. Install the package
+
+Navigate into the cloned repository and install the package in editable mode:
+
+```bash
 cd pytmatrix-lte
 pip install -e .
 ```
 
-- The code should now be installed and ready to use.
+### 4. Run tests
+
+To confirm that everything was installed correctly, run the built-in test suite:
+
+```bash
+from pytmatrix.test import test_tmatrix
+test_tmatrix.run_tests()
+```
+
+The software should now be installed and ready to use.
 
 ## Usage
 
-- See the [usage instructions](https://github.com/jleinonen/pytmatrix/wiki) in the original wiki.
-- Simple testing - run the following in the chosen python environment but ***outside*** the pytmatrix-lte directory, otherwise this can mess up the imports:
-
-```
-   from pytmatrix.test import test_tmatrix
-   test_tmatrix.run_tests()
-```
+See the [usage instructions](https://github.com/jleinonen/pytmatrix/wiki) in the original wiki.
+ 
