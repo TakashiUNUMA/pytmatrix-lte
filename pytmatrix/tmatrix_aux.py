@@ -19,7 +19,6 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-
 # Current version
 VERSION = "0.3.3"
 
@@ -41,21 +40,6 @@ geom_horiz_back = (90.0, 90.0, 0.0, 180.0, 0.0, 0.0)  # horiz. backscatter
 geom_horiz_forw = (90.0, 90.0, 0.0, 0.0, 0.0, 0.0)  # horiz. forward scatter
 geom_vert_back = (0.0, 180.0, 0.0, 0.0, 0.0, 0.0)  # vert. backscatter
 geom_vert_forw = (180.0, 180.0, 0.0, 0.0, 0.0, 0.0)  # vert. forward scatter
-
-
-# Wavelength, Frequency Conversion
-def mm_to_ghz(wavelength):
-    """Convert wavelength in millimeters to frequency in GHz."""
-    c = 299_792_458  # speed of light in m/s
-    frequency = c / wavelength / 1e6
-    return frequency
-
-
-def ghz_to_mm(frequency):
-    """Convert frequency in GHz to wavelength millimeters."""
-    c = 299_792_458  # speed of light in m/s
-    wavelength = c / frequency / 1e6
-    return wavelength
 
 
 # Drop Shape Relationship Functions

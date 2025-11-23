@@ -26,6 +26,42 @@ from scipy import interpolate
 from pytmatrix.tmatrix_aux import wl_S, wl_C, wl_X, wl_Ku, wl_Ka, wl_W
 
 
+# Water refractive indices for different bands at 0 C
+m_w_0C = {
+    wl_S: complex(9.075, 1.253),
+    wl_C: complex(8.328, 2.217),
+    wl_X: complex(7.351, 2.785),
+    wl_Ku: complex(6.265, 2.993),
+    wl_Ka: complex(4.040, 2.388),
+    wl_W: complex(2.880, 1.335),
+}
+
+
+# Water refractive indices for different bands at 10 C
+m_w_10C = {
+    wl_S: complex(9.019, 0.887),
+    wl_C: complex(8.601, 1.687),
+    wl_X: complex(7.942, 2.332),
+    wl_Ku: complex(7.042, 2.777),
+    wl_Ka: complex(4.638, 2.672),
+    wl_W: complex(3.117, 1.665),
+}
+
+
+# Water refractive indices for different bands at 20 C
+m_w_20C = {
+    wl_S: complex(8.876, 0.653),
+    wl_C: complex(8.633, 1.289),
+    wl_X: complex(8.208, 1.886),
+    wl_Ku: complex(7.537, 2.424),
+    wl_Ka: complex(5.206, 2.801),
+    wl_W: complex(3.382, 1.941),
+}
+
+
+# Ice density in g/cm^3
+ice_density = 0.9167
+
 def mg_refractive(m, mix):
     """Maxwell-Garnett EMA for the refractive index.
 
@@ -76,43 +112,6 @@ def bruggeman_refractive(m, mix):
     c = (f1 + f2) * e1 * e2
     e_eff = (-b - np.sqrt(b**2 - 4 * a * c)) / (2 * a)
     return np.sqrt(e_eff)
-
-
-# Water refractive indices for different bands at 0 C
-m_w_0C = {
-    wl_S: complex(9.075, 1.253),
-    wl_C: complex(8.328, 2.217),
-    wl_X: complex(7.351, 2.785),
-    wl_Ku: complex(6.265, 2.993),
-    wl_Ka: complex(4.040, 2.388),
-    wl_W: complex(2.880, 1.335),
-}
-
-
-# Water refractive indices for different bands at 10 C
-m_w_10C = {
-    wl_S: complex(9.019, 0.887),
-    wl_C: complex(8.601, 1.687),
-    wl_X: complex(7.942, 2.332),
-    wl_Ku: complex(7.042, 2.777),
-    wl_Ka: complex(4.638, 2.672),
-    wl_W: complex(3.117, 1.665),
-}
-
-
-# Water refractive indices for different bands at 20 C
-m_w_20C = {
-    wl_S: complex(8.876, 0.653),
-    wl_C: complex(8.633, 1.289),
-    wl_X: complex(8.208, 1.886),
-    wl_Ku: complex(7.537, 2.424),
-    wl_Ka: complex(5.206, 2.801),
-    wl_W: complex(3.382, 1.941),
-}
-
-
-# Ice density in g/cm^3
-ice_density = 0.9167
 
 
 def ice_refractive(file):

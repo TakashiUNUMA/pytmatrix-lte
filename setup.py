@@ -96,7 +96,7 @@ class PyTMatrixBuildExt(_build_ext):
 # Basic metadata about your package
 setup(
     name="pytmatrix",
-    version="0.3.3",
+    version="0.4.0",
     author="Jussi Leinonen",
     author_email="jsleinonen@gmail.com",
     description="T-matrix scattering computations",

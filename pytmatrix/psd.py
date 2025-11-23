@@ -19,7 +19,7 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-
+import sys
 from datetime import datetime
 
 try:
@@ -494,7 +494,9 @@ class PSDIntegrator:
                 self._m_table,
                 self.geometries,
             ),
-            "version": tmatrix_aux.VERSION,
+            "python_version": sys.version[0:7],
+            "numpy_version": np.__version__,
+            "tmatrix_version": tmatrix_aux.VERSION,
         }
         with open(fn, "wb") as f:
             pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
@@ -510,7 +512,7 @@ class PSDIntegrator:
         with open(fn, "rb") as f:
             data = pickle.load(f)
 
-        if ("version" not in data) or (data["version"] != tmatrix_aux.VERSION):
+        if ("tmatrix_version" not in data) or (data["tmatrix_version"] != tmatrix_aux.VERSION):
             warnings.warn("Loading data saved with another version.", Warning)
 
         (
